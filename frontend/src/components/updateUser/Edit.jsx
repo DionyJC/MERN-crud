@@ -22,7 +22,7 @@ const Edit = () => {
   }
 
  useEffect(()=>{
-   axios.get(`http://localhost:4000/api/getone/${id}`)
+   axios.get(`https://mern-crud-navy.vercel.app/api/getone/${id}`)
    .then((response) =>{
     setUser(response.data)
    })
@@ -42,7 +42,7 @@ const Edit = () => {
   }
 
   try {
-    await axios.put(`http://localhost:4000/api/update/${id}`, user);
+    await axios.put(`https://mern-crud-navy.vercel.app/api/update/${id}`, user);
     toast.success('¡Formulario actualizado con éxito!', { position: 'top-center' });
     navigate('/');
   } catch (error) {
