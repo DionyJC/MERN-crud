@@ -23,7 +23,7 @@ const Form = () => {
 
 
     // Si todas las validaciones pasan, envía la solicitud al servidor
-    const url = "https://mern-crud-navy.vercel.app//api/create";
+    const url = "https://mern-crud-navy.vercel.app/api/create";
     const response = await axios.post(url, {
       name,
       profession,
