@@ -1,5 +1,5 @@
 import { useState } from "react";
-// import {useNavigate} from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import axios from "axios";
 import toast from "react-hot-toast";
 
@@ -9,7 +9,7 @@ const Form = () => {
   const [profession, setProfession] = useState("");
   const [email, setEmail] = useState("");
   
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
   e.preventDefault();
@@ -105,12 +105,19 @@ const Form = () => {
           />
         </div>
         
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-center gap-4">
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
             type="submit"
           >
             Guardar
+          </button>
+          <button
+            className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            type="button"
+            onClick={() => navigate('/')}
+          >
+            Cancelar
           </button>
         </div>
       </form>
