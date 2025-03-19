@@ -4,8 +4,10 @@ import toast from "react-hot-toast";
 
 import { MdDeleteForever } from "react-icons/md";
 import { FaEdit } from "react-icons/fa";
+import { IoMdClose } from "react-icons/io";
+import { IoWarningOutline } from "react-icons/io5";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 
 const container = {
@@ -28,8 +30,133 @@ const item = {
   },
 };
 
+// Modal de confirmación de eliminación
+const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, userName }) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Overlay con efecto de desenfoque */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center"
+            onClick={onClose}
+          >
+            {/* Contenedor del modal */}
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: "spring", damping: 15, stiffness: 300 }}
+              className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-11/12 mx-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Cabecera del modal */}
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex items-center">
+                  <div className="mr-3 p-2 bg-red-100 rounded-full">
+                    <IoWarningOutline className="text-red-500 text-2xl" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-800">Confirmar eliminación</h3>
+                </div>
+                <button 
+                  onClick={onClose}
+                  className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                >
+                  <IoMdClose className="text-gray-500 text-xl" />
+                </button>
+              </div>
+              
+              {/* Línea divisoria con animación */}
+              <motion.div 
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ duration: 0.3, delay: 0.1 }}
+                className="h-px bg-gradient-to-r from-red-200 via-red-400 to-red-200 mb-4"
+              />
+              
+              {/* Contenido del modal */}
+              <div className="mb-6">
+                <p className="text-gray-600 mb-2">
+                  ¿Está seguro que desea eliminar a <span className="font-semibold text-red-600">{userName}</span>?
+                </p>
+                <p className="text-gray-500 text-sm">
+                  Esta acción no se puede deshacer y eliminará permanentemente los datos de este usuario.
+                </p>
+              </div>
+              
+              {/* Botones con efectos hover */}
+              <div className="flex justify-end gap-3">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={onClose}
+                  className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 transition-colors"
+                >
+                  Cancelar
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={onConfirm}
+                  className="px-4 py-2 rounded-lg bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-300"
+                >
+                  Eliminar
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
+
 const User = () => {
   const [users, setUsers] = useState([]);
+  // Estado para controlar el modal de confirmación
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    userId: null,
+    userName: ''
+  });
+
+  // Función para abrir el modal de confirmación
+  const openDeleteModal = (userId, userName) => {
+    setDeleteModal({
+      isOpen: true,
+      userId,
+      userName
+    });
+  };
+
+  // Función para cerrar el modal de confirmación
+  const closeDeleteModal = () => {
+    setDeleteModal({
+      isOpen: false,
+      userId: null,
+      userName: ''
+    });
+  };
+
+  // Función para ejecutar la eliminación después de confirmar
+  const confirmDelete = async () => {
+    const { userId } = deleteModal;
+    
+    try {
+      await axios.delete(`https://mern-crud-navy.vercel.app/api/delete/${userId}`);
+      setUsers((prevUser) => prevUser.filter((user) => user._id !== userId));
+      toast.success('Usuario eliminado correctamente', { position: 'top-center' });
+    } catch (error) {
+      console.log(error);
+      toast.error('Error al eliminar el usuario. Inténtelo de nuevo.', { position: 'top-center' });
+    } finally {
+      closeDeleteModal();
+    }
+  };
 
  // ...
 
@@ -54,21 +181,16 @@ useEffect(() => {
 
 // ...
 
-
-  const deleteUser = async (userId) => {
-    try {
-      await axios.delete(`https://mern-crud-navy.vercel.app/api/delete/${userId}`);
-      setUsers((prevUser) => prevUser.filter((user) => user._id !== userId));
-      // Notificación de Toast al eliminar satisfactoriamente
-      toast.success('Usuario eliminado correctamente', { position: 'top-center' });
-    } catch (error) {
-      console.log(error);
-      toast.error('Error al eliminar el usuario. Inténtelo de nuevo.', { position: 'top-center' });
-    }
-  };
-
   return (
     <div className="flex items-center justify-center flex-col p-10">
+      {/* Modal de confirmación */}
+      <DeleteConfirmationModal
+        isOpen={deleteModal.isOpen}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDelete}
+        userName={deleteModal.userName}
+      />
+      
       <motion.div
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         variants={container}
@@ -125,7 +247,7 @@ useEffect(() => {
                 </Link>
 
                 <button
-                  onClick={() => deleteUser(user._id)}
+                  onClick={() => openDeleteModal(user._id, user.name)}
                   className="w-[48%] bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg"
                 >
                   <MdDeleteForever className="mr-2" size={18} />
